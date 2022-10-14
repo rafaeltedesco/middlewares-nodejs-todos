@@ -2,7 +2,6 @@ const express = require('express');
 const cors = require('cors');
 
 const { v4: uuidv4, validate } = require('uuid');
-const { user } = require('./__tests__/middlewares/checksTodoExists.spec');
 
 const app = express();
 app.use(express.json());
@@ -13,9 +12,13 @@ const users = [];
 function checksExistsUserAccount(request, response, next) {
   const { username } = request.headers
   const user = users.find(user => user.username === username)
-  if (!user) return response.status(404).json()
-  request.user = user
-  next()
+  if (!user) {
+    return response.status(404).json()
+  }
+  else {
+    request.user = user
+    next()
+  }
 
 }
 
@@ -28,24 +31,36 @@ function checksCreateTodosUserAvailability(request, response, next) {
 function checksTodoExists(request, response, next) {
   const { username } = request.headers
   const { id } = request.params
-  if (!validate(id)) return response.status(400).json()
+  if (!validate(id)) {
+    return response.status(400).json()
+  }
   const userRequested = users.find(user => user.username === username)
-  if (!userRequested) return response.status(404).json()
+  if (!userRequested) {
+    return response.status(404).json()
+  }
   const userTodos = userRequested.todos
   const todoFound = userTodos.find(todo => todo.id === id)
-  if (!todoFound) return response.status(404).json()
-  request.user = userRequested
-  request.todo = todoFound
-  next()
+  if (!todoFound) {
+    return response.status(404).json()
+  }
+  else {
+    request.user = userRequested
+    request.todo = todoFound
+    next()
+  }
 
 }
 
 function findUserById(request, response, next) {
   const { id } = request.params
   const requestedUser = users.find(user => user.id === id)
-  if (!requestedUser) return response.status(404).json()
-  request.user = requestedUser
-  next()
+  if (!requestedUser) {
+    return response.status(404).json()
+  }
+  else {
+    request.user = requestedUser
+    next()
+  }
 }
 
 app.post('/users', (request, response) => {
