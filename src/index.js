@@ -12,55 +12,53 @@ const users = [];
 function checksExistsUserAccount(request, response, next) {
   const { username } = request.headers
   const user = users.find(user => user.username === username)
-  if (!user) {
-    return response.status(404).json()
-  }
-  else {
-    request.user = user
-    next()
-  }
+  if (!user) return response.status(404).json({
+      error: 'user not exists'
+    })  
 
+  request.user = user
+  next()
 }
 
 function checksCreateTodosUserAvailability(request, response, next) {
   const user = request.user
   if (user.pro || user.todos.length < 10) next()
-  return response.status(403).json()
+  return response.status(403).json({
+    error: 'Limit reached'
+  })
 }
 
 function checksTodoExists(request, response, next) {
   const { username } = request.headers
   const { id } = request.params
-  if (!validate(id)) {
-    return response.status(400).json()
-  }
+  if (!validate(id)) return response.status(400).json({
+      error: 'Invalid uuid'
+    })
   const userRequested = users.find(user => user.username === username)
-  if (!userRequested) {
-    return response.status(404).json()
-  }
+  if (!userRequested) return response.status(404).json({
+      error: 'User not found'
+    })
   const userTodos = userRequested.todos
   const todoFound = userTodos.find(todo => todo.id === id)
-  if (!todoFound) {
-    return response.status(404).json()
-  }
-  else {
-    request.user = userRequested
-    request.todo = todoFound
-    next()
-  }
-
+  if (!todoFound) return response.status(404).json({
+      error: 'Todo not found'
+    })
+  
+  request.user = userRequested
+  request.todo = todoFound
+  next()
 }
 
 function findUserById(request, response, next) {
   const { id } = request.params
   const requestedUser = users.find(user => user.id === id)
-  if (!requestedUser) {
-    return response.status(404).json()
-  }
-  else {
-    request.user = requestedUser
-    next()
-  }
+  if (!requestedUser) return response.status(404).json({
+      error: 'User Not found'
+    })
+
+  request.user = requestedUser
+  next()
+
 }
 
 app.post('/users', (request, response) => {
