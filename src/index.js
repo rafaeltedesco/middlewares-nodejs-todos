@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 
 const { v4: uuidv4, validate } = require('uuid');
+const { user } = require('./__tests__/middlewares/checksTodoExists.spec');
 
 const app = express();
 app.use(express.json());
@@ -10,19 +11,41 @@ app.use(cors());
 const users = [];
 
 function checksExistsUserAccount(request, response, next) {
-  // Complete aqui
+  const { username } = request.headers
+  const user = users.find(user => user.username === username)
+  if (!user) return response.status(404).json()
+  request.user = user
+  next()
+
 }
 
 function checksCreateTodosUserAvailability(request, response, next) {
-  // Complete aqui
+  const user = request.user
+  if (user.pro || user.todos.length < 10) next()
+  return response.status(403).json()
 }
 
 function checksTodoExists(request, response, next) {
-  // Complete aqui
+  const { username } = request.headers
+  const { id } = request.params
+  if (!validate(id)) return response.status(400).json()
+  const userRequested = users.find(user => user.username === username)
+  if (!userRequested) return response.status(404).json()
+  const userTodos = userRequested.todos
+  const todoFound = userTodos.find(todo => todo.id === id)
+  if (!todoFound) return response.status(404).json()
+  request.user = userRequested
+  request.todo = todoFound
+  next()
+
 }
 
 function findUserById(request, response, next) {
-  // Complete aqui
+  const { id } = request.params
+  const requestedUser = users.find(user => user.id === id)
+  if (!requestedUser) return response.status(404).json()
+  request.user = requestedUser
+  next()
 }
 
 app.post('/users', (request, response) => {
